@@ -37,9 +37,10 @@ const SpinWheel: React.FC<SpinWheelProps> = ({ isSpinning, onSpinEnd, onSpinStar
       .innerRadius(0)
       .outerRadius(radius);
 
+    // labelArc pushed further out for "đẩy lui ra ngoài mép"
     const labelArc = d3.arc<d3.PieArcDatum<string>>()
-      .innerRadius(radius * 0.5)
-      .outerRadius(radius * 0.92);
+      .innerRadius(radius * 0.6)
+      .outerRadius(radius * 0.95);
 
     const slices = svg.selectAll('g.slice')
       .data(data)
@@ -51,7 +52,7 @@ const SpinWheel: React.FC<SpinWheelProps> = ({ isSpinning, onSpinEnd, onSpinStar
       .attr('d', arc)
       .attr('fill', (d, i) => COLORS[i % COLORS.length])
       .attr('stroke', '#fff')
-      .attr('stroke-width', '2px');
+      .attr('stroke-width', '1px');
 
     slices.append('text')
       .attr('transform', (d) => {
@@ -63,29 +64,32 @@ const SpinWheel: React.FC<SpinWheelProps> = ({ isSpinning, onSpinEnd, onSpinStar
       })
       .attr('text-anchor', 'middle')
       .attr('alignment-baseline', 'middle')
-      .attr('fill', '#000') // Black text for better contrast
-      .style('font-size', '11px') // Slightly larger
-      .style('font-weight', '900') // Extra bold
+      .attr('fill', '#000') // Black text
+      .style('font-size', STUDENT_LIST.length > 30 ? '8px' : '10px') // Adjust size based on count
+      .style('font-weight', '900') // Bold
       .style('pointer-events', 'none')
-      .text((d) => d.data.split(' ').pop() || ''); // Last name only
+      .text((d) => {
+        const names = d.data.split(' ');
+        return names[names.length - 1]; // Last name only for clarity
+      });
 
     // Center decoration
     svg.append('circle')
-      .attr('r', 20)
+      .attr('r', 25)
       .attr('fill', '#fff')
-      .attr('stroke', '#333')
-      .attr('stroke-width', 3);
+      .attr('stroke', '#fbbf24') // Yellow-400 equivalent
+      .attr('stroke-width', 4);
       
     svg.append('circle')
-      .attr('r', 8)
+      .attr('r', 10)
       .attr('fill', '#333');
 
   }, []);
 
-  // Handle spinning logic when isSpinning prop changes
+  // Handle spinning logic
   useEffect(() => {
     if (isSpinning) {
-      const extraDegrees = Math.floor(Math.random() * 360) + 1800; // 5 full spins min
+      const extraDegrees = Math.floor(Math.random() * 360) + 2160; // At least 6 full spins for excitement
       const newRotation = rotationRef.current + extraDegrees;
       rotationRef.current = newRotation;
       setRotation(newRotation);
@@ -94,10 +98,7 @@ const SpinWheel: React.FC<SpinWheelProps> = ({ isSpinning, onSpinEnd, onSpinStar
         const actualRotation = newRotation % 360;
         const sliceAngle = 360 / STUDENT_LIST.length;
         
-        // The arrow is at the top (270 degrees in SVG coordinates if 0 is at 3 o'clock)
-        // Since we rotate the container clockwise, we calculate the index relative to the pointer
-        // formula: index = (PointerAngle - actualRotation) / sliceAngle
-        // Pointer is at -90deg (or 270deg)
+        // Pointer is at the top (270 degrees)
         const pointerAngle = 270;
         const index = Math.floor(((pointerAngle - actualRotation + 3600) % 360) / sliceAngle);
         const selectedStudent = STUDENT_LIST[index % STUDENT_LIST.length];
@@ -112,14 +113,14 @@ const SpinWheel: React.FC<SpinWheelProps> = ({ isSpinning, onSpinEnd, onSpinStar
   return (
     <div className="flex flex-col items-center justify-center space-y-4 relative p-4 bg-white rounded-full shadow-2xl border-8 border-yellow-400">
       <div 
-        className="relative transition-transform duration-[4000ms] ease-[cubic-bezier(0.15,0,0.15,1)]"
+        className="relative transition-transform duration-[4000ms] ease-[cubic-bezier(0.1,0,0.1,1)]"
         style={{ transform: `rotate(${rotation}deg)` }}
       >
-        <svg ref={svgRef} className="w-[300px] h-[300px] md:w-[400px] md:h-[400px]"></svg>
+        <svg ref={svgRef} className="w-[320px] h-[320px] md:w-[450px] md:h-[450px]"></svg>
       </div>
-      {/* Pointer (Static, outside rotation div) */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-4 w-0 h-0 border-l-[20px] border-l-transparent border-r-[20px] border-r-transparent border-t-[40px] border-t-red-600 z-20 drop-shadow-xl filter">
-         <div className="absolute top-[-45px] left-[-5px] w-[10px] h-[10px] bg-white rounded-full"></div>
+      {/* Pointer */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-6 w-0 h-0 border-l-[25px] border-l-transparent border-r-[25px] border-r-transparent border-t-[50px] border-t-red-600 z-20 drop-shadow-2xl">
+         <div className="absolute top-[-55px] left-[-6px] w-[12px] h-[12px] bg-white rounded-full"></div>
       </div>
     </div>
   );
